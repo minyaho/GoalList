@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Goal List (Demo)</string>
+
+    <string-array name="notify_time">
+        <item>Not need</item>
+        <item>Before 0 min</item>
+        <item>Before 1 min</item>
+        <item>Before 3 min</item>
+        <item>Before 5 min</item>
+        <item>Before 10 min</item>
+        <item>Before 15 min</item>
+        <item>Before 30 min</item>
+        <item>Before 1 hr</item>
+        <item>Before 3 hr</item>
+    </string-array>
+
+    <string-array name="notify_time_value">
+        <item>-1</item>
+        <item>0</item>
+        <item>60000</item>
+        <item>180000</item>
+        <item>300000</item>
+        <item>600000</item>
+        <item>900000</item>
+        <item>1800000</item>
+        <item>3600000</item>
+        <item>10800000</item>
+    </string-array>
+</resources>
