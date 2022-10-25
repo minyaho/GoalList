@@ -493,7 +493,6 @@ public class MainPage1 extends Fragment implements SwipeRefreshLayout.OnRefreshL
 
     private void initTimer(){   //初始化計時器，透過線呈每秒更新
         Thread time_date_info_thread = new Thread(timedate_runnable);
-        Thread update_timer = new Thread(timedate_runnable);
         time_date_info_thread.start();
     }
 
