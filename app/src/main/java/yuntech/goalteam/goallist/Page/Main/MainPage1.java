@@ -54,7 +54,7 @@ import static android.content.Context.JOB_SCHEDULER_SERVICE;
 public class MainPage1 extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     /*xml上的元件*/
-    TextView tv_page_title,tv_empty;
+    TextView tv_page_title,tv_empty,tv_remain;
     ImageView iv_empty;
     ConstraintLayout layout_empty;
     private View view = null;
@@ -94,6 +94,7 @@ public class MainPage1 extends Fragment implements SwipeRefreshLayout.OnRefreshL
         tv_empty = (TextView)view.findViewById(R.id.tv_empty);
         iv_empty = (ImageView)view.findViewById(R.id.iv_empty);
         layout_empty = (ConstraintLayout)view.findViewById(R.id.layout_empty);
+        tv_remain = (TextView)view.findViewById(R.id.tv_remain);;
 
         tv_page_title.setText("Next");
         tv_empty.setText("There is empty\nQuick new a Goal");
@@ -202,7 +203,6 @@ public class MainPage1 extends Fragment implements SwipeRefreshLayout.OnRefreshL
                             (cursor.getLong(cursor.getColumnIndex("end_time"))),
                             (cursor.getLong(cursor.getColumnIndex("notify_time")))
                     );
-
                     listItems.add(0, listItem);
 
                     /*通知adapter進行更新*/
@@ -212,6 +212,7 @@ public class MainPage1 extends Fragment implements SwipeRefreshLayout.OnRefreshL
                     }
                 }
             }
+
             /*搜索下一筆*/
             cursor.moveToNext();
         }
@@ -371,6 +372,7 @@ public class MainPage1 extends Fragment implements SwipeRefreshLayout.OnRefreshL
             Intent intent = data;
             String returnID = intent.getExtras().getString("id", null);
             int returnPos = intent.getExtras().getInt("position",0);
+            Log.d("tag", String.valueOf(returnPos));
             //System.out.println("returnID:" + returnID + " returnPos: "+returnPos);
             if((returnID==null)||(returnPos==-1)){  //進行錯誤判斷
                 Toast.makeText(getActivity(),"Return Error",Toast.LENGTH_SHORT).show();
@@ -474,7 +476,7 @@ public class MainPage1 extends Fragment implements SwipeRefreshLayout.OnRefreshL
         return builder;
     }
 
-    private void scheduleNotifications(int JobID,Long time) {   //註冊Notification
+    private void scheduleNotifications(int JobID, Long time) {   //註冊Notification
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             try {
                 JobInfo jobInfo = new JobInfo.Builder(JobID, new ComponentName(getActivity().getPackageName(), NotificationJobService.class.getName()))
@@ -491,6 +493,7 @@ public class MainPage1 extends Fragment implements SwipeRefreshLayout.OnRefreshL
 
     private void initTimer(){   //初始化計時器，透過線呈每秒更新
         Thread time_date_info_thread = new Thread(timedate_runnable);
+        Thread update_timer = new Thread(timedate_runnable);
         time_date_info_thread.start();
     }
 
@@ -508,6 +511,7 @@ public class MainPage1 extends Fragment implements SwipeRefreshLayout.OnRefreshL
             }
         }
     };
+
     Runnable timedate_runnable=new Runnable() {
         @Override
         public void run() {

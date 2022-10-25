@@ -2,17 +2,23 @@ package yuntech.goalteam.goallist.Activity;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.app.job.JobInfo;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Paint;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,6 +31,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import android.app.job.JobScheduler;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,6 +42,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import yuntech.goalteam.goallist.Datebase.GoalSQLiteOpenHelper;
+import yuntech.goalteam.goallist.Notification.NotificationJobService;
 import yuntech.goalteam.goallist.R;
 
 public class GoalItemEditActivity extends AppCompatActivity {
@@ -51,6 +59,7 @@ public class GoalItemEditActivity extends AppCompatActivity {
     Calendar eDateTime;
     long notify_time = 0;
     Boolean notify_flag = false;
+    private JobScheduler jobScheduler;
 
     private String TB = "goals_table";
     private GoalSQLiteOpenHelper helper;
@@ -86,6 +95,7 @@ public class GoalItemEditActivity extends AppCompatActivity {
 
         sDateTime = Calendar.getInstance();
         eDateTime = Calendar.getInstance();
+        jobScheduler = (JobScheduler)getSystemService(JOB_SCHEDULER_SERVICE);
 
         initNotifySpinner();
     }
@@ -243,6 +253,30 @@ public class GoalItemEditActivity extends AppCompatActivity {
             //Toast.makeText(GoalItemEditActivity.this,name+'\n'+notation+'\n'+bDateTime.getTime()+'\n'+fDateTime.getTime()+'\n'+isFinish,Toast.LENGTH_LONG).show();
             //System.out.println("bDateTime "+bDateTime.getTime());
             //lSystem.out.println("bDateTime "+fDateTime.getTime());
+
+            ////新增的東西(每儲存一次就重新設一次通知)
+            long setNotificationsTime =fDateTime.getTime()-System.currentTimeMillis()-notify_time;
+            if(notify_time > 0 && setNotificationsTime>=0 && isFinish==false && notify_flag==true)//設置通知
+            {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    try {
+                        Intent intent = getIntent();
+                        String returnID = intent.getExtras().getString("id", null);
+                        id = intent.getExtras().getString("id", null);
+                        Cursor cursor = db.query(TB,null,"id="+returnID,null,null,null,null);
+                        cursor.moveToFirst();
+                        JobInfo jobInfo = new JobInfo.Builder(cursor.getInt(cursor.getColumnIndex("id")), new ComponentName(getPackageName(), NotificationJobService.class.getName()))
+                                .setPersisted(true) //系統重啟後保留job
+                                .setMinimumLatency(setNotificationsTime)//最小延时 5秒
+                                .setOverrideDeadline(setNotificationsTime)
+                                .build();
+                        jobScheduler.schedule(jobInfo);
+                    } catch (Exception ex) {
+                        Log.e("JobScheduler error","error");
+                    }
+                }
+            }
+
             finish();
         }
     }
